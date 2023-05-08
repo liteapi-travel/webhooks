@@ -18,9 +18,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/joho/godotenv"
 	twilio "github.com/twilio/twilio-go"
 
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
@@ -82,6 +84,10 @@ func HandleLambdaEvent(body functionBody) (MyResponse, error) {
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(".env file couldn't be loaded")
+	}
 	lambda.Start(HandleLambdaEvent)
 
 }

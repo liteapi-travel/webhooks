@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/joho/godotenv"
 )
-
-var slackWebhookURL = os.Getenv("SLACK_WEBHOOK_URL")
 
 // SlackMessage struct
 type SlackMessage struct {
@@ -25,7 +25,7 @@ func sendMessageToSlack(slackMessage SlackMessage) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", slackWebhookURL, bytes.NewBuffer(jsonMessage))
+	req, err := http.NewRequest("POST", os.Getenv("SLACK_WEBHOOK_URL"), bytes.NewBuffer(jsonMessage))
 	if err != nil {
 		return err
 	}
@@ -72,5 +72,9 @@ func HandleLambdaEvent(body functionBody) (MyResponse, error) {
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(".env file couldn't be loaded")
+	}
 	lambda.Start(HandleLambdaEvent)
 }

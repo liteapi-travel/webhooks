@@ -1,3 +1,18 @@
+// server.go
+//
+// Use this sample code to handle webhook events in your integration.
+//
+// 1) Create a new Go module
+//   go mod init example.com/liteAPI/webhooks/example
+//
+// 2) Paste this code into a new file (server.go)
+//
+// 3) Install dependencies
+//   go get -u github.com/gin-gonic/gin
+//
+// 4) Run the server on http://127.0.0.1:8080
+//   go run server.go
+
 package main
 
 import (
@@ -12,19 +27,21 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type MailchimpMessage struct {
-	EventName string `json:"event_name"`
-	Request   string `json:"request"`
-	Response  string `json:"response"`
+type IftttMessage struct {
+	EventName string `json:"value1"`
+	Request   string `json:"value2"`
+	Response  string `json:"value3"`
 }
 
-func sendMessageToMailchimp(mailchimpMessage MailchimpMessage) error {
-	jsonMessage, err := json.Marshal(mailchimpMessage)
+var iftttWebhookURL = os.Getenv("IFTTT_WEBHOOK_URL")
+
+func sendMessageToIfttt(slackMessage IftttMessage) error {
+	jsonMessage, err := json.Marshal(slackMessage)
 	if err != nil {
 		return err
 	}
-
-	req, err := http.NewRequest("POST", os.Getenv("MAILCHIMP_WEBHOOK_URL"), bytes.NewBuffer(jsonMessage))
+	fmt.Println(os.Getenv("IFTTT_WEBHOOK_URL"))
+	req, err := http.NewRequest("POST", os.Getenv("IFTTT_WEBHOOK_URL"), bytes.NewBuffer(jsonMessage))
 	if err != nil {
 		return err
 	}
@@ -40,7 +57,7 @@ func sendMessageToMailchimp(mailchimpMessage MailchimpMessage) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Request to Mailchimp returned an error: %v", resp.Status)
+		return fmt.Errorf("Request to Slack returned an error: %v", resp.Status)
 	}
 
 	return nil
@@ -57,11 +74,11 @@ type functionBody struct {
 
 func HandleLambdaEvent(body functionBody) (MyResponse, error) {
 
-	var event MailchimpMessage
+	var event IftttMessage
 	err := json.Unmarshal([]byte(body.Body), &event)
 	message := "nok"
 	if err == nil {
-		err = sendMessageToMailchimp(event)
+		err = sendMessageToIfttt(event)
 		if err == nil {
 			message = "ok"
 		}
@@ -74,5 +91,6 @@ func main() {
 	if err != nil {
 		log.Fatal(".env file couldn't be loaded")
 	}
+
 	lambda.Start(HandleLambdaEvent)
 }
