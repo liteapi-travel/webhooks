@@ -28,19 +28,25 @@ import (
 )
 
 type IftttMessage struct {
+	EventName string `json:"event_name"`
+	Request   string `json:"request"`
+	Response  string `json:"response"`
+}
+
+type PayloadMessage struct {
 	EventName string `json:"value1"`
 	Request   string `json:"value2"`
 	Response  string `json:"value3"`
 }
 
-var iftttWebhookURL = os.Getenv("IFTTT_WEBHOOK_URL")
+func sendMessageToIfttt(iftttMessage IftttMessage) error {
 
-func sendMessageToIfttt(slackMessage IftttMessage) error {
-	jsonMessage, err := json.Marshal(slackMessage)
+	payloadMessage := PayloadMessage(iftttMessage)
+
+	jsonMessage, err := json.Marshal(payloadMessage)
 	if err != nil {
 		return err
 	}
-	fmt.Println(os.Getenv("IFTTT_WEBHOOK_URL"))
 	req, err := http.NewRequest("POST", os.Getenv("IFTTT_WEBHOOK_URL"), bytes.NewBuffer(jsonMessage))
 	if err != nil {
 		return err
